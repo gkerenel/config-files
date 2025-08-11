@@ -1,0 +1,50 @@
+
+#! /usr/bin/bash
+
+pgrep -x sxhkd > /dev/null || sxhkd &
+
+export XDG_CURRENT_DESKTOP=bspwm
+
+sh -c 'function shenv() { export "$1=$2"; }; source $HOME/.env'
+
+bspc monitor -d ides music games work web chat
+
+bspc config focus_follows_pointer true
+
+monitor=$(xrandr --query | grep " connected" | awk '{ print $1 }' | head -n 1)
+
+resolution=$(xrandr --query | grep -A1 "^$monitor" | grep -Eo '[0-9]+x[0-9]+' | sort -V | tail -n 1)
+
+refresh_rate=$(xrandr --query | grep -A1 "^$monitor" | grep -Eo '[0-9]+\.[0-9]+' | sort -V | tail -n 1)
+
+if [[ -n $monitor && -n $resolution && -n $refresh_rate ]]; then
+    xrandr --output "$monitor" --mode "$resolution" --rate "$refresh_rate"
+fi
+
+bspc config focused_border_color "#b4befe"
+
+bspc config border_width 3
+
+bspc config borderless_monocle true
+
+bspc config gapless_monocle false
+
+bspc config window_gap 10
+
+bspc config pointer_modifier mod4
+
+bspc config pointer_action1 move
+
+bspc config pointer_action2 resize_side
+
+bspc config pointer_action3 resize_corner
+
+dbus-update-activation-environment --systemd XDG_CURRENT_DESKTOP
+
+xrdb merge $HOME/.Xresources
+
+xsettingsd &
+
+dunst &
+
+picom &
